@@ -1,5 +1,4 @@
 <?php
-
 // Koneksi ke Database
 $conn = mysqli_connect("localhost", "root", "", "ujikom");
 
@@ -12,7 +11,6 @@ if (!$conn) {
 function query($query)
 {
     global $conn;
-
 
     $result = mysqli_query($conn, $query);
     $rows = [];
@@ -27,14 +25,16 @@ function query($query)
 function tambah_data($data){
     global $conn;
 
-    $judul  = $data["judul"];
-    $penulis  = $data["penulis"];
-    $penerbit  = $data["penerbit"];
-    $tahun_terbit  = $data["tahun_terbit"];
-    $kategori = $data["kategori"];
+    $judul        = mysqli_real_escape_string($conn, $data["judul"]);
+    $penulis      = mysqli_real_escape_string($conn, $data["penulis"]);
+    $penerbit     = mysqli_real_escape_string($conn, $data["penerbit"]);
+    $tahun_terbit = mysqli_real_escape_string($conn, $data["tahun_terbit"]);
+    $id_kategori = mysqli_real_escape_string($conn, $data["id_kategori"]);
+    // pastikan form mengirim name="id_kategori"
+    $id_kategori  = isset($data["id_kategori"]) ? (int)$data["id_kategori"] : "NULL";
 
-    $query = "INSERT INTO buku (judul, penulis, penerbit, tahun_terbit, kategori)
-              VALUES ('$judul', '$penulis', '$penerbit', '$tahun_terbit', '$kategori')";
+    $query = "INSERT INTO buku (judul, penulis, penerbit, tahun_terbit, id_kategori)
+              VALUES ('$judul', '$penulis', '$penerbit', '$tahun_terbit', " . ($id_kategori === "NULL" ? "NULL" : $id_kategori) . ")";
 
     mysqli_query($conn, $query);
     return mysqli_affected_rows($conn);
@@ -46,12 +46,9 @@ function hapus_data($id)
 {
     global $conn;
 
-
-    $query = "DELETE FROM buku WHERE id_buku= $id";
-
-
-    $result = mysqli_query($conn, $query);
-
+    $id = (int)$id;
+    $query = "DELETE FROM buku WHERE id_buku = $id";
+    mysqli_query($conn, $query);
 
     return mysqli_affected_rows($conn);
 }
@@ -61,20 +58,21 @@ function ubah_data($data)
 {
     global $conn;
 
-    $id_buku = $data["id_buku"];
-    $judul  = $data["judul"];
-    $penulis  = $data["penulis"];
-    $penerbit  = $data["penerbit"];
-    $tahun_terbit  = $data["tahun_terbit"];
-    $kategori = $data["kategori"];
+    $id_buku = $data['id_buku'];
+    $judul = $data['judul'];
+    $penulis = $data['penulis'];
+    $penerbit = $data['penerbit'];
+    $tahun_terbit = $data['tahun_terbit'];
+    $id_kategori = $data['id_kategori'];
+
 
     $query = "UPDATE buku SET
                 judul = '$judul',
                 penulis = '$penulis',
                 penerbit = '$penerbit',
                 tahun_terbit = '$tahun_terbit',
-                kategori = '$kategori'
-              WHERE id_buku = $id_buku
+                id_kategori = '$id_kategori'
+              WHERE id_buku = $id
              ";
 
     mysqli_query($conn, $query);
@@ -82,17 +80,22 @@ function ubah_data($data)
 }
 
 
-
-// fungsi untuk mencari data
+// fungsi untuk mencari data (mencari juga lewat nama_kategori)
 function search_data($keyword)
 {
-    $query = "SELECT * FROM buku
+    global $conn;
+    $kw = mysqli_real_escape_string($conn, $keyword);
+
+    $query = "SELECT buku.*, kategori.nama_kategori
+              FROM buku
+              LEFT JOIN kategori ON buku.id_kategori = kategori.id_kategori
               WHERE
-                judul LIKE '%$keyword%' OR
-                penulis LIKE '%$keyword%' OR
-                penerbit LIKE '%$keyword%' OR
-                tahun_terbit LIKE '%$keyword%' OR
-                kategori LIKE '%$keyword%'";
+                buku.judul LIKE '%$kw%' OR
+                buku.penulis LIKE '%$kw%' OR
+                buku.penerbit LIKE '%$kw%' OR
+                buku.tahun_terbit LIKE '%$kw%' OR
+                kategori.nama_kategori LIKE '%$kw%'";
+
     return query($query);
 }
 
@@ -101,35 +104,26 @@ function search_data($keyword)
 function register($data){
     global $conn;
 
-
-    $username = strtolower($data['username']);
-    $email = $data['email'];
+    $username = strtolower(mysqli_real_escape_string($conn, $data['username']));
+    $email = mysqli_real_escape_string($conn, $data['email']);
     $password = mysqli_real_escape_string($conn, $data['password']);
     $konfirmasi_password = mysqli_real_escape_string($conn, $data['confirm_password']);
 
-
-// query untuk ngecek username yang diinputkan oleh user di database
-    $query = mysqli_query($conn, "SELECT username FROM user WHERE username = '$username'");
-    $result = mysqli_fetch_assoc($query);
-
-
-    if($result != NULL){
+    // cek username sudah ada atau belum
+    $cek = mysqli_query($conn, "SELECT username FROM user WHERE username = '$username'");
+    if(mysqli_fetch_assoc($cek) != NULL){
         return "Username sudah terdaftar!";
     }
-
 
     if($password != $konfirmasi_password){
         return "Konfirmasi password tidak sesuai!";
     }
 
+    // enkripsi password
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-// enkripsi password
-    $password = password_hash($password, PASSWORD_DEFAULT);
-
-
-// tambahkan userbaru ke database
-    mysqli_query($conn, "INSERT INTO user (username, email, password) VALUES('$username', '$email', '$password')");
-
+    // tambahkan user baru ke database
+    mysqli_query($conn, "INSERT INTO user (username, email, password) VALUES('$username', '$email', '$password_hash')");
 
     return true;
 }
@@ -138,30 +132,22 @@ function register($data){
 function login($data){
     global $conn;
 
-
-    $username = $data['username'];
+    $username = mysqli_real_escape_string($conn, $data['username']);
     $password = $data['password'];
 
-
-    $query = "SELECT * FROM user WHERE username = '$username'";
-    $result = mysqli_query($conn, $query);
-
+    $result = mysqli_query($conn, "SELECT * FROM user WHERE username = '$username'");
 
     if(mysqli_num_rows($result) === 1){
         $row = mysqli_fetch_assoc($result);
-
 
         if(password_verify($password, $row['password'])){
             $_SESSION['login'] = true;
             $_SESSION['username'] = $row['username'];
             return true;
         } else {
-           
             return "Password salah!";
         }
-
-
-    }else{
+    } else {
         return "Username tidak terdaftar!";
     }
 }
