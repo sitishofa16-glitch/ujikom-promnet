@@ -7,10 +7,14 @@
     $id = $_GET['id'];
 
 
-    $query = query("SELECT * FROM buku WHERE id_buku = $id_buku")[0];
-    // echo "<pre>";
-    // var_dump($query);
-    // echo "</pre>";
+    $query = query("
+    SELECT b.*, k.nama_kategori 
+    FROM buku b
+    LEFT JOIN kategori k ON b.id_kategori = k.id_kategori
+    WHERE b.id_buku = $id
+")[0];
+
+    
     $buku = $query;
 
 
@@ -40,8 +44,6 @@
 ?>
 
 
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,17 +58,14 @@
     <!-- NAVBAR SECTION START  -->
     <nav class="navbar navbar-expand-lg navbar-light white bg-danger">
         <div class="container">
-            <a class="navbar-brand text-white" href="#">SIAK UPI</a>
+            <a class="navbar-brand text-white" href="#">SIMBS</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                <a class="nav-link active text-white" aria-current="page" href="#">Data Mahasiswa</a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link text-white" href="#">Link</a>
+                <a class="nav-link active text-white" aria-current="page" href="#">Data buku</a>
                 </li>
             </ul>
             </div>
@@ -76,43 +75,60 @@
    
     <div class="p-4 container">
         <div class="row">
-            <h1 class="mb-2">Ubah Data Mahasiswa</h1>
+            <h1 class="mb-2">Ubah Data buku</h1>
             <a href="index.php" class="mb-2">Kembali</a>
             <div class="col-md-6">
                 <!-- <form action="" method="POST" enctype="multipart/form-data"> -->
-                <form action="" method="POST">
-                    <!-- input text bayangan -->
-                    <input type="hidden" class="form-control" name="id" id="id" value="<?= $mahasiswa['id'] ?>" autocomplete="off">
-                   
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">NIM</label>
-                        <input type="text" class="form-control" name="nim" id="nim" value="<?= $mahasiswa['nim'] ?>" autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Nama</label>
-                        <input type="text" class="form-control" name="nama" id="nama" value="<?= $mahasiswa['nama'] ?>" autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="text" class="form-control" name="email" id="email" value="<?= $mahasiswa['email'] ?>" autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Jurusan</label>
-                        <input type="text" class="form-control" name="jurusan" id="jurusan" value="<?= $mahasiswa['jurusan'] ?>" autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Gambar</label>
-                        <input type="text" class="form-control" name="gambar" id="gambar" value="<?= $mahasiswa['gambar'] ?>" autocomplete="off">
-                    </div>
-                    <div class="mb-3">
-                        <button type="submit" name="tombol_submit" class="btn-sm btn-primary">Submit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+               <form action="" method="POST">
+    <input type="hidden" name="id_buku" value="<?= $buku['id_buku'] ?>">
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Judul</label>
+        <input type="text" class="form-control" name="judul" value="<?= $buku['judul'] ?>" autocomplete="off">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Penulis</label>
+        <input type="text" class="form-control" name="penulis" value="<?= $buku['penulis'] ?>" autocomplete="off">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Penerbit</label>
+        <input type="text" class="form-control" name="penerbit" value="<?= $buku['penerbit'] ?>" autocomplete="off">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Tahun Terbit</label>
+        <input type="text" class="form-control" name="tahun_terbit" value="<?= $buku['tahun_terbit'] ?>" autocomplete="off">
+    </div>
+
+        <div class="mb-3">
+        <label class="form-label fw-bold">Kategori</label>
+                    <select name="id_kategori" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        <option value="">Fiksi</option>
+                        <option value="">Non-Fiksi</option>
+                        <option value="">Pendidikan</option>
+                        <option value="">Teknologi</option>
+                        <option value="">Bisnis</option>
+                        <option value="">Kesehatan</option>
+                        <option value="">Agama</option>
+                        <option value="">Anak-anak</option>
+                        <option value="">Komik</option>
+                        <option value="">Referensi</option>
+                        <?php foreach ($kategori as $row): ?>
+                            <option value="<?= $row['id_kategori']; ?>" <?= $row['id_kategori'] == $buku['id_kategori'] ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($row['nama_kategori']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
     </div>
 
 
+    <div class="mb-3">
+        <button type="submit" name="tombol_submit" class="btn-sm btn-primary">Submit</button>
+    </div>
+</form>
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
