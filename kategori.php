@@ -107,7 +107,7 @@ if(isset($_POST['cari'])){
           <input type="text" name="nama_kategori" class="form-control" placeholder="Nama kategori" required>
         </div>
         <div class="col-md-4">
-          <button name="tambah_kategori" class="btn btn-info text-white w-100">Tambah Kategori</button>
+          <button name="tambah_kategori" class="btn  btn-secondary text-white w-100">Tambah Kategori</button>
         </div>
       </form>
     </div>
@@ -115,10 +115,10 @@ if(isset($_POST['cari'])){
 
   <form method="POST" class="mb-3 d-flex gap-2">
     <input type="text" name="keyword" class="form-control" placeholder="Cari kategori...">
-    <button name="cari" class="btn btn-info text-white">Cari</button>
+    <button name="cari" class="btn btn-secondary text-white">Cari</button>
   </form>
 
-  <table class="table table-bordered text-center">
+  <table class="table table-bordered text-center ">
     <thead class="table-info">
       <tr>
         <th>No</th>

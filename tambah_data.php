@@ -327,12 +327,12 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Kategori</label>
                         <select name="kategori">
-                            <?php foreach($kategori as $row): ?>
-                                <option value="<?= $row['id_kategori']; ?>">
-                                    <?= $row['nama_kategori']; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <?php foreach($kategori as $row): ?>
+                            <option value="<?= $row['id_kategori']; ?>">
+                                <?= $row['nama_kategori']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                     </div>
 
                     <div class="mb-3">
